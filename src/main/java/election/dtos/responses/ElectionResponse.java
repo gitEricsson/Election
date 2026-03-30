@@ -1,12 +1,10 @@
 package election.dtos.responses;
-
 import java.time.LocalDate;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Data
-@NoArgsConstructor
+@Getter
+@Builder
 @AllArgsConstructor
 public class ElectionResponse {
     private Long id;

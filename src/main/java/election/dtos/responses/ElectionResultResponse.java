@@ -1,12 +1,12 @@
 package election.dtos.responses;
 
 import java.util.Map;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+
+import lombok.*;
 
 @Data
-@NoArgsConstructor
+@Getter
+@Builder
 @AllArgsConstructor
 public class ElectionResultResponse {
     private String electionTitle;
