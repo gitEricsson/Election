@@ -1,8 +1,11 @@
 package election.services;
 
 import election.data.models.Candidate;
+import election.data.models.Election;
 import election.data.repositories.CandidateRepository;
+import election.data.repositories.ElectionRepository;
 import election.data.repositories.VoteRepository;
+import election.dtos.responses.ElectionResultResponse;
 import election.exceptions.*;
 import org.springframework.stereotype.Service;
 import java.util.HashMap;
@@ -14,10 +17,12 @@ public class ResultService {
 
     private final VoteRepository voteRepository;
     private final CandidateRepository candidateRepository;
+    private final ElectionRepository electionRepository;
 
-    public ResultService(VoteRepository voteRepository, CandidateRepository candidateRepository) {
+    public ResultService(VoteRepository voteRepository, CandidateRepository candidateRepository, ElectionRepository electionRepository) {
         this.voteRepository = voteRepository;
         this.candidateRepository = candidateRepository;
+        this.electionRepository = electionRepository;
     }
 
     public Map<Candidate, Integer> getVoteCounts(Long electionId) {
@@ -58,5 +63,25 @@ public class ResultService {
         }
 
         return winner;
+    }
+
+    public ElectionResultResponse getElectionResults(Long electionId) {
+        Election election = electionRepository.findById(electionId).orElseThrow(ElectionNotFoundException::new);
+        Map<Candidate, Integer> counts = getVoteCounts(electionId);
+
+        Map<String, Integer> candidateVotes = new HashMap<>();
+        for (Map.Entry<Candidate, Integer> entry : counts.entrySet()) {
+            candidateVotes.put(entry.getKey().getName(), entry.getValue());
+        }
+
+        String winnerName;
+        try {
+            Candidate winner = getWinner(electionId);
+            winnerName = winner.getName();
+        } catch (TieException e) {
+            winnerName = "Tie";
+        }
+
+        return new ElectionResultResponse(election.getTitle(), candidateVotes, winnerName);
     }
 }

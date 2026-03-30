@@ -3,6 +3,8 @@ package services;
 import election.data.models.Election;
 import election.data.repositories.ElectionRepository;
 import election.exceptions.*;
+import election.dtos.requests.ElectionRequest;
+import election.dtos.responses.ElectionResponse;
 import election.services.ElectionService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,12 +29,21 @@ class ElectionServiceTest {
     @Test
     @DisplayName("Should create election successfully")
     void shouldCreateElectionSuccessfully() {
-        Election election = new Election("Presidential", LocalDate.now(), LocalDate.now().plusDays(1));
-        when(electionRepository.save(election)).thenReturn(election);
+        ElectionRequest request = new ElectionRequest();
+        request.setTitle("Presidential");
+        request.setStartDate(LocalDate.now());
+        request.setEndDate(LocalDate.now().plusDays(1));
+        
+        Election savedElection = new Election("Presidential", LocalDate.now(), LocalDate.now().plusDays(1));
+        savedElection.setId(1L);
+        
+        when(electionRepository.save(any(Election.class))).thenReturn(savedElection);
 
-        Election createdElection = electionService.createElection(election);
+        ElectionResponse createdElection = electionService.createElection(request);
 
         assertNotNull(createdElection);
+        assertEquals(1L, createdElection.getId());
+        assertEquals("PENDING", createdElection.getStatus());
     }
 
     @Test

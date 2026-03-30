@@ -75,8 +75,8 @@ class CandidateServiceTest {
     @Test
     @DisplayName("Should return empty list if no candidates exist")
     void shouldReturnEmptyListIfNoCandidatesExist() {
-        List<Candidate> emptyCandidateslist = new java.util.ArrayList<>();
-        when(candidateRepository.findByElectionId(1L)).thenReturn(emptyCandidateslist);
+        List<Candidate> t = new java.util.ArrayList<>();
+        when(candidateRepository.findByElectionId(1L)).thenReturn(t);
 
         List<Candidate> candidates = candidateService.getCandidatesByElection(1L);
 

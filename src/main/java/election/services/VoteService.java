@@ -6,6 +6,7 @@ import election.data.models.Candidate;
 import election.data.repositories.VoteRepository;
 import election.data.repositories.ElectionRepository;
 import election.data.repositories.CandidateRepository;
+import election.dtos.requests.VoteRequest;
 import election.exceptions.*;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
@@ -23,7 +24,8 @@ public class VoteService {
         this.candidateRepository = candidateRepository;
     }
 
-    public Vote castVote(Vote vote) {
+    public Vote castVote(VoteRequest request) {
+        Vote vote = new Vote(request.getUserId(), request.getElectionId(), request.getCandidateId());
         Election election = electionRepository.findById(vote.getElectionId()).orElseThrow(ElectionNotFoundException::new);
 
         if (!election.isStarted()) {

@@ -2,6 +2,8 @@ package election.services;
 
 import election.data.models.User;
 import election.data.repositories.UserRepository;
+import election.dtos.requests.UserRequest;
+import election.dtos.responses.UserResponse;
 import election.exceptions.*;
 import org.springframework.stereotype.Service;
 
@@ -14,17 +16,20 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public User createUser(User user) {
-        if (!user.getEmail().contains("@")) {
+    public UserResponse createUser(UserRequest userRequest) {
+        if (!userRequest.getEmail().contains("@")) {
             throw new InvalidEmailFormatException("Invalid email");
         }
-        if (userRepository.existsByEmail(user.getEmail())) {
+        if (userRepository.existsByEmail(userRequest.getEmail())) {
             throw new DuplicateEmailException("Duplicate email");
         }
-        return userRepository.save(user);
+        User user = new User(userRequest.getName(), userRequest.getEmail());
+        User savedUser = userRepository.save(user);
+        return new UserResponse(savedUser.getId(), savedUser.getName(), savedUser.getEmail());
     }
 
-    public User getUserById(Long id) {
-        return userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+    public UserResponse getUserById(Long id) {
+        User user = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+        return new UserResponse(user.getId(), user.getName(), user.getEmail());
     }
 }

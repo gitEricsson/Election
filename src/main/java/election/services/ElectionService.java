@@ -2,9 +2,13 @@ package election.services;
 
 import election.data.models.Election;
 import election.data.repositories.ElectionRepository;
+import election.dtos.requests.ElectionRequest;
+import election.dtos.responses.ElectionResponse;
 import election.exceptions.*;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class ElectionService {
@@ -15,11 +19,13 @@ public class ElectionService {
         this.electionRepository = electionRepository;
     }
 
-    public Election createElection(Election election) {
-        if (election.getStartDate().isAfter(election.getEndDate())) {
+    public ElectionResponse createElection(ElectionRequest request) {
+        if (request.getStartDate().isAfter(request.getEndDate())) {
             throw new InvalidDateException("Invalid date range");
         }
-        return electionRepository.save(election);
+        Election election = new Election(request.getTitle(), request.getStartDate(), request.getEndDate());
+        Election savedElection = electionRepository.save(election);
+        return mapToResponse(savedElection);
     }
 
     public void startElection(Long id) {
@@ -50,5 +56,21 @@ public class ElectionService {
 
     public Election getElection(Long id) {
         return electionRepository.findById(id).orElseThrow(ElectionNotFoundException::new);
+    }
+
+    public List<ElectionResponse> findAll() {
+        return electionRepository.findAll().stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+
+    private ElectionResponse mapToResponse(Election election) {
+        String status = "PENDING";
+        if (election.isEnded()) {
+            status = "ENDED";
+        } else if (election.isStarted()) {
+            status = "STARTED";
+        }
+        return new ElectionResponse(election.getId(), election.getTitle(), status, election.getEndDate());
     }
 }

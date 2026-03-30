@@ -1,8 +1,5 @@
 package election.services;
 
-import election.exceptions.DuplicateCandidateException;
-import election.exceptions.ElectionNotFoundException;
-import election.exceptions.InvalidCandidateNameException;
 import election.data.models.Candidate;
 import election.data.repositories.CandidateRepository;
 import election.data.repositories.ElectionRepository;

@@ -7,6 +7,7 @@ import election.data.repositories.VoteRepository;
 import election.data.repositories.ElectionRepository;
 import election.data.repositories.CandidateRepository;
 import election.exceptions.*;
+import election.dtos.requests.VoteRequest;
 import election.services.VoteService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,6 +45,10 @@ class VoteServiceTest {
         election.setStarted(true);
         Candidate candidate = new Candidate();
         candidate.setElectionId(1L);
+        VoteRequest request = new VoteRequest();
+        request.setUserId(1L);
+        request.setElectionId(1L);
+        request.setCandidateId(1L);
         Vote vote = new Vote(1L, 1L, 1L);
 
         when(electionRepository.findById(1L)).thenReturn(Optional.of(election));
@@ -51,7 +56,7 @@ class VoteServiceTest {
         when(candidateRepository.findById(1L)).thenReturn(Optional.of(candidate));
         when(voteRepository.save(any(Vote.class))).thenReturn(vote);
 
-        Vote castVote = voteService.castVote(vote);
+        Vote castVote = voteService.castVote(request);
 
         assertNotNull(castVote);
         verify(voteRepository).save(any(Vote.class));
@@ -60,10 +65,13 @@ class VoteServiceTest {
     @Test
     @DisplayName("Should fail if election does not exist")
     void shouldFailIfElectionDoesNotExist() {
-        Vote vote = new Vote(1L, 99L, 1L);
+        VoteRequest request = new VoteRequest();
+        request.setUserId(1L);
+        request.setElectionId(99L);
+        request.setCandidateId(1L);
         when(electionRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThrows(ElectionNotFoundException.class, () -> voteService.castVote(vote));
+        assertThrows(ElectionNotFoundException.class, () -> voteService.castVote(request));
     }
 
     @Test
@@ -71,10 +79,13 @@ class VoteServiceTest {
     void shouldFailIfElectionNotStarted() {
         Election election = new Election();
         election.setStarted(false);
-        Vote vote = new Vote(1L, 2L, 1L);
+        VoteRequest request = new VoteRequest();
+        request.setUserId(1L);
+        request.setElectionId(2L);
+        request.setCandidateId(1L);
         when(electionRepository.findById(2L)).thenReturn(Optional.of(election));
 
-        assertThrows(ElectionNotStartedException.class, () -> voteService.castVote(vote));
+        assertThrows(ElectionNotStartedException.class, () -> voteService.castVote(request));
     }
 
     @Test
@@ -83,10 +94,13 @@ class VoteServiceTest {
         Election election = new Election();
         election.setStarted(true);
         election.setEnded(true);
-        Vote vote = new Vote(1L, 3L, 1L);
+        VoteRequest request = new VoteRequest();
+        request.setUserId(1L);
+        request.setElectionId(3L);
+        request.setCandidateId(1L);
         when(electionRepository.findById(3L)).thenReturn(Optional.of(election));
 
-        assertThrows(ElectionEndedException.class, () -> voteService.castVote(vote));
+        assertThrows(ElectionEndedException.class, () -> voteService.castVote(request));
     }
 
     @Test
@@ -94,11 +108,14 @@ class VoteServiceTest {
     void shouldFailIfUserAlreadyVoted() {
         Election election = new Election();
         election.setStarted(true);
-        Vote vote = new Vote(1L, 1L, 1L);
+        VoteRequest request = new VoteRequest();
+        request.setUserId(1L);
+        request.setElectionId(1L);
+        request.setCandidateId(1L);
         when(electionRepository.findById(1L)).thenReturn(Optional.of(election));
         when(voteRepository.existsByUserIdAndElectionId(1L, 1L)).thenReturn(true);
 
-        assertThrows(DuplicateVoteException.class, () -> voteService.castVote(vote));
+        assertThrows(DuplicateVoteException.class, () -> voteService.castVote(request));
     }
 
     @Test
@@ -106,12 +123,15 @@ class VoteServiceTest {
     void shouldFailIfCandidateDoesNotExist() {
         Election election = new Election();
         election.setStarted(true);
-        Vote vote = new Vote(1L, 1L, 99L);
+        VoteRequest request = new VoteRequest();
+        request.setUserId(1L);
+        request.setElectionId(1L);
+        request.setCandidateId(99L);
         when(electionRepository.findById(1L)).thenReturn(Optional.of(election));
         when(voteRepository.existsByUserIdAndElectionId(1L, 1L)).thenReturn(false);
         when(candidateRepository.findById(99L)).thenReturn(Optional.empty());
 
-        assertThrows(CandidateNotFoundException.class, () -> voteService.castVote(vote));
+        assertThrows(CandidateNotFoundException.class, () -> voteService.castVote(request));
     }
 
     @Test
@@ -121,13 +141,16 @@ class VoteServiceTest {
         election.setStarted(true);
         Candidate candidate = new Candidate();
         candidate.setElectionId(2L);
-        Vote vote = new Vote(1L, 1L, 4L);
+        VoteRequest request = new VoteRequest();
+        request.setUserId(1L);
+        request.setElectionId(1L);
+        request.setCandidateId(4L);
 
         when(electionRepository.findById(1L)).thenReturn(Optional.of(election));
         when(voteRepository.existsByUserIdAndElectionId(1L, 1L)).thenReturn(false);
         when(candidateRepository.findById(4L)).thenReturn(Optional.of(candidate));
 
-        assertThrows(InvalidCandidateForElectionException.class, () -> voteService.castVote(vote));
+        assertThrows(InvalidCandidateForElectionException.class, () -> voteService.castVote(request));
     }
 
     @Test
@@ -137,6 +160,10 @@ class VoteServiceTest {
         election.setStarted(true);
         Candidate candidate = new Candidate();
         candidate.setElectionId(1L);
+        VoteRequest request = new VoteRequest();
+        request.setUserId(1L);
+        request.setElectionId(1L);
+        request.setCandidateId(1L);
         Vote vote = new Vote(1L, 1L, 1L);
         vote.setTimestamp(LocalDateTime.now());
 
@@ -145,7 +172,7 @@ class VoteServiceTest {
         when(candidateRepository.findById(1L)).thenReturn(Optional.of(candidate));
         when(voteRepository.save(any(Vote.class))).thenReturn(vote);
 
-        Vote castVote = voteService.castVote(vote);
+        Vote castVote = voteService.castVote(request);
 
         assertNotNull(castVote.getTimestamp());
     }
