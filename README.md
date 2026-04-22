@@ -1,28 +1,38 @@
 # Election Management System
 
-A RESTful API for managing elections, built with Spring and MongoDB.
+[![Java](https://img.shields.io/badge/Java-17+-blue.svg)](https://openjdk.java.net/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-4.1.0--M3-brightgreen.svg)](https://spring.io/projects/spring-boot)
+[![MongoDB](https://img.shields.io/badge/MongoDB-7.0+-green.svg)](https://www.mongodb.com/)
+[![Maven](https://img.shields.io/badge/Maven-3.6+-orange.svg)](https://maven.apache.org/)
+
+A comprehensive RESTful API for managing elections, built with Spring Boot and MongoDB. This system enables organizations to create, manage, and conduct elections with user registration, voting, and result tracking capabilities.
 
 ## Features
 
-- **User Management**: Register users and retrieve user information
-- **Election Management**: Create, start, end, and delete elections
-- **Voting System**: Cast votes for election options
-- **Results**: View election results and determine winners
-- **Error Handling**: Comprehensive exception handling for various scenarios
+- **User Management**: Register users and retrieve user information with email validation
+- **Election Management**: Create, start, end, and delete elections with date validation
+- **Voting System**: Secure vote casting with duplicate vote prevention
+- **Results & Analytics**: View election results and determine winners with tie handling
+- **Error Handling**: Comprehensive exception handling for various scenarios (invalid dates, unauthorized access, etc.)
+- **RESTful API**: Well-structured REST endpoints with proper HTTP status codes
+- **Data Persistence**: MongoDB integration for scalable data storage
 
 ## Technologies Used
 
 - **Java 17+**
 - **Spring Boot 4.1.0-M3**
-- **MongoDB** (via Spring Data MongoDB)
-- **Lombok** (for reducing boilerplate code)
-- **JUnit 5** and **Mockito** (for testing)
+  - Spring Web (REST controllers)
+  - Spring Data MongoDB (data persistence)
+- **MongoDB** (NoSQL database)
+- **Lombok** (boilerplate code reduction)
+- **JUnit 5** and **Mockito** (unit testing)
+- **Maven** (build tool)
 
 ## Prerequisites
 
 - Java 17 or higher
 - Maven 3.6+
-- MongoDB (running locally or accessible via connection string)
+- MongoDB 7.0+ (running locally or accessible via connection string)
 
 ## Installation and Setup
 
@@ -39,7 +49,16 @@ A RESTful API for managing elections, built with Spring and MongoDB.
    mvn clean compile
    ```
 
-3. **Run the application**:
+3. **Ensure MongoDB is running**:
+
+   ```bash
+   # For local MongoDB installation
+   mongod
+   ```
+
+   Or configure connection to a remote MongoDB instance.
+
+4. **Run the application**:
 
    ```bash
    mvn spring-boot:run
@@ -85,15 +104,18 @@ mvn test
 ```
 src/
 ├── main/java/election/
-│   ├── controllers/     # REST controllers
+│   ├── controllers/          # REST controllers (@RestController)
 │   ├── data/
-│   │   ├── models/      # Domain models
-│   │   └── repositories/# Data access layer
-│   ├── dtos/            # Data transfer objects
-│   ├── exceptions/      # Custom exceptions
-│   ├── services/        # Business logic
-│   └── utils/           # Utility classes
-└── test/java/services/  # Unit tests
+│   │   ├── models/           # Domain entities (@Document)
+│   │   └── repositories/     # Data access (@Repository)
+│   ├── dtos/
+│   │   ├── requests/         # Request DTOs
+│   │   └── responses/        # Response DTOs
+│   ├── exceptions/           # Custom exceptions
+│   ├── services/             # Business logic (@Service)
+│   └── utils/                # Utility classes
+├── test/java/services/       # Unit tests
+└── main/resources/           # Configuration files (optional)
 ```
 
 ## Contributing
