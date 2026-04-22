@@ -7,8 +7,10 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 public class ElectionResponse {
-    private Long id;
+    private String id;
     private String title;
+    private String description;
     private String status;
     private LocalDate endDate;
+    private java.util.List<OptionResponse> options;
 }

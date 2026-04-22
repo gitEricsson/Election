@@ -1,8 +1,8 @@
 package election.services;
 
-import election.data.models.Candidate;
+import election.data.models.Option;
 import election.data.models.Election;
-import election.data.repositories.CandidateRepository;
+import election.data.repositories.OptionRepository;
 import election.data.repositories.ElectionRepository;
 import election.data.repositories.VoteRepository;
 import election.dtos.responses.ElectionResultResponse;
@@ -16,34 +16,38 @@ import java.util.Map;
 public class ResultService {
 
     private final VoteRepository voteRepository;
-    private final CandidateRepository candidateRepository;
+    private final OptionRepository optionRepository;
     private final ElectionRepository electionRepository;
 
-    public ResultService(VoteRepository voteRepository, CandidateRepository candidateRepository, ElectionRepository electionRepository) {
+    public ResultService(VoteRepository voteRepository, OptionRepository optionRepository, ElectionRepository electionRepository) {
         this.voteRepository = voteRepository;
-        this.candidateRepository = candidateRepository;
+        this.optionRepository = optionRepository;
         this.electionRepository = electionRepository;
     }
 
-    public Map<Candidate, Integer> getVoteCounts(Long electionId) {
-        List<Candidate> candidates = candidateRepository.findByElectionId(electionId);
-        Map<Candidate, Integer> voteCounts = new HashMap<>();
+    public Map<Option, Integer> getVoteCounts(String electionId) {
+        List<Option> options = optionRepository.findByElectionId(electionId);
+        Map<Option, Integer> voteCounts = new HashMap<>();
 
-        for (Candidate candidate : candidates) {
-            int count = voteRepository.countByElectionIdAndCandidateId(electionId, candidate.getId());
-            voteCounts.put(candidate, count);
+        for (Option option : options) {
+            int count = voteRepository.countByElectionIdAndOptionId(electionId, option.getId());
+            voteCounts.put(option, count);
         }
         return voteCounts;
     }
 
-    public Candidate getWinner(Long electionId) {
-        Map<Candidate, Integer> counts = getVoteCounts(electionId);
+    public Option getWinner(String electionId) {
+        Election election = electionRepository.findById(electionId).orElseThrow(ElectionNotFoundException::new);
+        if (!election.isEnded()) {
+            throw new ElectionOngoingException("Election is still ongoing");
+        }
+        Map<Option, Integer> counts = getVoteCounts(electionId);
 
         int maxVotes = -1;
-        Candidate winner = null;
+        Option winner = null;
         boolean isTie = false;
 
-        for (Map.Entry<Candidate, Integer> entry : counts.entrySet()) {
+        for (Map.Entry<Option, Integer> entry : counts.entrySet()) {
             int votes = entry.getValue();
 
             if (votes > maxVotes) {
@@ -65,23 +69,27 @@ public class ResultService {
         return winner;
     }
 
-    public ElectionResultResponse getElectionResults(Long electionId) {
+    public ElectionResultResponse getElectionResults(String electionId) {
         Election election = electionRepository.findById(electionId).orElseThrow(ElectionNotFoundException::new);
-        Map<Candidate, Integer> counts = getVoteCounts(electionId);
+        Map<Option, Integer> counts = getVoteCounts(electionId);
 
-        Map<String, Integer> candidateVotes = new HashMap<>();
-        for (Map.Entry<Candidate, Integer> entry : counts.entrySet()) {
-            candidateVotes.put(entry.getKey().getName(), entry.getValue());
+        Map<String, Integer> optionVotes = new HashMap<>();
+        for (Map.Entry<Option, Integer> entry : counts.entrySet()) {
+            optionVotes.put(entry.getKey().getName(), entry.getValue());
         }
 
         String winnerName;
-        try {
-            Candidate winner = getWinner(electionId);
-            winnerName = winner.getName();
-        } catch (TieException e) {
-            winnerName = "Tie";
+        if (election.isEnded()) {
+            try {
+                Option winner = getWinner(electionId);
+                winnerName = (winner != null) ? winner.getName() : "No winner yet";
+            } catch (TieException e) {
+                winnerName = "Tie";
+            }
+        } else {
+            winnerName = "Election ongoing";
         }
 
-        return new ElectionResultResponse(election.getTitle(), candidateVotes, winnerName);
+        return new ElectionResultResponse(election.getTitle(), optionVotes, winnerName);
     }
 }

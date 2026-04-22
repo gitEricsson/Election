@@ -28,8 +28,13 @@ public class UserService {
         return new UserResponse(savedUser.getId(), savedUser.getName(), savedUser.getEmail());
     }
 
-    public UserResponse getUserById(Long id) {
+    public UserResponse getUserById(String id) {
         User user = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+        return new UserResponse(user.getId(), user.getName(), user.getEmail());
+    }
+
+    public UserResponse getUserByEmail(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
         return new UserResponse(user.getId(), user.getName(), user.getEmail());
     }
 }

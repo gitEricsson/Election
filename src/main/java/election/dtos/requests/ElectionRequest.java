@@ -12,6 +12,9 @@ import lombok.Setter;
 @Setter
 public class ElectionRequest {
     private String title;
+    private String description;
+    private String creatorId;
     private LocalDate startDate;
     private LocalDate endDate;
+    private java.util.List<String> options;
 }

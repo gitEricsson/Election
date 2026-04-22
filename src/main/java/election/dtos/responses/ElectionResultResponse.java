@@ -10,6 +10,6 @@ import lombok.*;
 @AllArgsConstructor
 public class ElectionResultResponse {
     private String electionTitle;
-    private Map<String, Integer> candidateVotes;
+    private Map<String, Integer> optionVotes;
     private String winnerName;
 }

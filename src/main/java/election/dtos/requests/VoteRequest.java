@@ -10,7 +10,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class VoteRequest {
-    private Long userId;
-    private Long electionId;
-    private Long candidateId;
+    private String userId;
+    private String electionId;
+    private String optionId;
 }

@@ -1,13 +1,13 @@
 package election.dtos.responses;
-
+ 
 import lombok.*;
-
+ 
 @Data
 @Getter
-@Builder
+@Setter
+@NoArgsConstructor
 @AllArgsConstructor
-public class UserResponse {
+public class OptionResponse {
     private String id;
     private String name;
-    private String email;
 }

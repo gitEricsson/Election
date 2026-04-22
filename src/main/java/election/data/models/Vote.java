@@ -13,15 +13,15 @@ import java.time.LocalDateTime;
 @Document(collection = "votes")
 public class Vote {
     @Id
-    private Long id;
-    private Long userId;
-    private Long electionId;
-    private Long candidateId;
+    private String id;
+    private String userId;
+    private String electionId;
+    private String optionId;
     private LocalDateTime timestamp;
 
-    public Vote(Long userId, Long electionId, Long candidateId) {
+    public Vote(String userId, String electionId, String optionId) {
         this.userId = userId;
         this.electionId = electionId;
-        this.candidateId = candidateId;
+        this.optionId = optionId;
     }
 }

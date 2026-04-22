@@ -6,8 +6,8 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface VoteRepository extends MongoRepository<Vote, Long> {
-    boolean existsByUserIdAndElectionId(Long userId, Long electionId);
-    int countByElectionIdAndCandidateId(Long electionId, Long candidateId);
-    List<Vote> findByElectionId(Long electionId);
+public interface VoteRepository extends MongoRepository<Vote, String> {
+    boolean existsByUserIdAndElectionId(String userId, String electionId);
+    int countByElectionIdAndOptionId(String electionId, String optionId);
+    List<Vote> findByElectionId(String electionId);
 }

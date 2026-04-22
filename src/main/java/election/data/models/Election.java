@@ -13,15 +13,19 @@ import java.time.LocalDate;
 @Document(collection = "elections")
 public class Election {
     @Id
-    private Long id;
+    private String id;
     private String title;
+    private String description;
+    private String creatorId;
     private LocalDate startDate;
     private LocalDate endDate;
     private boolean isStarted;
     private boolean isEnded;
 
-    public Election(String title, LocalDate startDate, LocalDate endDate) {
+    public Election(String title, String description, String creatorId, LocalDate startDate, LocalDate endDate) {
         this.title = title;
+        this.description = description;
+        this.creatorId = creatorId;
         this.startDate = startDate;
         this.endDate = endDate;
     }

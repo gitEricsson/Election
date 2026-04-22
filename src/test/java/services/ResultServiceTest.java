@@ -1,12 +1,13 @@
 package services;
 
-import election.data.models.Candidate;
+import election.data.models.Option;
 import election.data.models.Election;
-import election.data.repositories.CandidateRepository;
+import election.data.repositories.OptionRepository;
 import election.data.repositories.ElectionRepository;
 import election.data.repositories.VoteRepository;
 import election.dtos.responses.ElectionResultResponse;
 import election.exceptions.TieException;
+import election.exceptions.ElectionOngoingException;
 import election.services.ResultService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,7 +28,7 @@ class ResultServiceTest {
     private VoteRepository voteRepository;
 
     @Mock
-    private CandidateRepository candidateRepository;
+    private OptionRepository optionRepository;
 
     @Mock
     private ElectionRepository electionRepository;
@@ -36,83 +37,132 @@ class ResultServiceTest {
     private ResultService resultService;
 
     @Test
-    @DisplayName("Should return correct vote counts per candidate")
-    void shouldReturnCorrectVoteCountsPerCandidate() {
-        Candidate candidate = new Candidate("Jane");
-        candidate.setId(1L);
-        List<Candidate> listOfCandidates = new java.util.ArrayList<>();
-        listOfCandidates.add(candidate);
-        when(candidateRepository.findByElectionId(1L)).thenReturn(listOfCandidates);
-        when(voteRepository.countByElectionIdAndCandidateId(1L, 1L)).thenReturn(10);
+    @DisplayName("Should return correct vote counts per option")
+    void shouldReturnCorrectVoteCountsPerOption() {
+        Option option = new Option("Option 1");
+        option.setId("1");
+        List<Option> listOfOptions = new java.util.ArrayList<>();
+        listOfOptions.add(option);
+        when(optionRepository.findByElectionId("1")).thenReturn(listOfOptions);
+        when(voteRepository.countByElectionIdAndOptionId("1", "1")).thenReturn(10);
 
-        Map<Candidate, Integer> voteCounts = resultService.getVoteCounts(1L);
+        Map<Option, Integer> voteCounts = resultService.getVoteCounts("1");
 
-        assertEquals(10, voteCounts.get(candidate));
+        assertEquals(10, voteCounts.get(option));
     }
 
     @Test
     @DisplayName("Should return winner correctly")
     void shouldReturnWinnerCorrectly() {
-        Candidate candidateOne = new Candidate("Jane");
-        candidateOne.setId(1L);
-        Candidate candidateTwo = new Candidate("John");
-        candidateTwo.setId(2L);
+        Option optionOne = new Option("Option 1");
+        optionOne.setId("1");
+        Option optionTwo = new Option("Option 2");
+        optionTwo.setId("2");
 
-        List<Candidate> listOfCandidates = new java.util.ArrayList<>();
-        listOfCandidates.add(candidateOne);
-        listOfCandidates.add(candidateTwo);
-        when(candidateRepository.findByElectionId(1L)).thenReturn(listOfCandidates);
-        when(voteRepository.countByElectionIdAndCandidateId(1L, 1L)).thenReturn(20);
-        when(voteRepository.countByElectionIdAndCandidateId(1L, 2L)).thenReturn(10);
+        Election election = new Election();
+        election.setEnded(true);
 
-        Candidate winner = resultService.getWinner(1L);
+        List<Option> listOfOptions = new java.util.ArrayList<>();
+        listOfOptions.add(optionOne);
+        listOfOptions.add(optionTwo);
+        when(optionRepository.findByElectionId("1")).thenReturn(listOfOptions);
+        when(voteRepository.countByElectionIdAndOptionId("1", "1")).thenReturn(20);
+        when(voteRepository.countByElectionIdAndOptionId("1", "2")).thenReturn(10);
+        when(electionRepository.findById("1")).thenReturn(Optional.of(election));
 
-        assertEquals(candidateOne, winner);
+        Option winner = resultService.getWinner("1");
+
+        assertEquals(optionOne, winner);
     }
 
     @Test
-    @DisplayName("Should handle tie between candidates")
-    void shouldHandleTieBetweenCandidates() {
-        Candidate candidateOne = new Candidate("Jane");
-        candidateOne.setId(1L);
-        Candidate candidateTwo = new Candidate("John");
-        candidateTwo.setId(2L);
+    @DisplayName("Should handle tie between options")
+    void shouldHandleTieBetweenOptions() {
+        Option optionOne = new Option("Option 1");
+        optionOne.setId("1");
+        Option optionTwo = new Option("Option 2");
+        optionTwo.setId("2");
 
-        List<Candidate> t = new java.util.ArrayList<>();
-        t.add(candidateOne);
-        t.add(candidateTwo);
-        when(candidateRepository.findByElectionId(1L)).thenReturn(t);
-        when(voteRepository.countByElectionIdAndCandidateId(1L, 1L)).thenReturn(15);
-        when(voteRepository.countByElectionIdAndCandidateId(1L, 2L)).thenReturn(15);
+        Election election = new Election();
+        election.setEnded(true);
 
-        assertThrows(TieException.class, () -> resultService.getWinner(1L));
+        List<Option> t = new java.util.ArrayList<>();
+        t.add(optionOne);
+        t.add(optionTwo);
+        when(optionRepository.findByElectionId("1")).thenReturn(t);
+        when(voteRepository.countByElectionIdAndOptionId("1", "1")).thenReturn(15);
+        when(voteRepository.countByElectionIdAndOptionId("1", "2")).thenReturn(15);
+        when(electionRepository.findById("1")).thenReturn(Optional.of(election));
+
+        assertThrows(TieException.class, () -> resultService.getWinner("1"));
     }
 
     @Test
     @DisplayName("Should return election results")
     void shouldReturnElectionResults() {
-        Candidate candidateOne = new Candidate("Jane");
-        candidateOne.setId(1L);
-        Candidate candidateTwo = new Candidate("John");
-        candidateTwo.setId(2L);
+        Option optionOne = new Option("Option 1");
+        optionOne.setId("1");
+        Option optionTwo = new Option("Option 2");
+        optionTwo.setId("2");
         
         Election election = new Election();
         election.setTitle("My Election");
+        election.setEnded(true);
 
-        List<Candidate> listOfCandidates = new java.util.ArrayList<>();
-        listOfCandidates.add(candidateOne);
-        listOfCandidates.add(candidateTwo);
+        List<Option> listOfOptions = new java.util.ArrayList<>();
+        listOfOptions.add(optionOne);
+        listOfOptions.add(optionTwo);
         
-        when(electionRepository.findById(1L)).thenReturn(Optional.of(election));
-        when(candidateRepository.findByElectionId(1L)).thenReturn(listOfCandidates);
-        when(voteRepository.countByElectionIdAndCandidateId(1L, 1L)).thenReturn(20);
-        when(voteRepository.countByElectionIdAndCandidateId(1L, 2L)).thenReturn(10);
+        when(electionRepository.findById("1")).thenReturn(Optional.of(election));
+        when(optionRepository.findByElectionId("1")).thenReturn(listOfOptions);
+        when(voteRepository.countByElectionIdAndOptionId("1", "1")).thenReturn(20);
+        when(voteRepository.countByElectionIdAndOptionId("1", "2")).thenReturn(10);
 
-        ElectionResultResponse response = resultService.getElectionResults(1L);
+        ElectionResultResponse response = resultService.getElectionResults("1");
 
         assertEquals("My Election", response.getElectionTitle());
-        assertEquals("Jane", response.getWinnerName());
-        assertEquals(20, response.getCandidateVotes().get("Jane"));
-        assertEquals(10, response.getCandidateVotes().get("John"));
+        assertEquals("Option 1", response.getWinnerName());
+        assertEquals(20, response.getOptionVotes().get("Option 1"));
+        assertEquals(10, response.getOptionVotes().get("Option 2"));
+    }
+
+    @Test
+    @DisplayName("Should return election results with ongoing status when election is not ended")
+    void shouldReturnElectionResultsWithOngoingStatus() {
+        Option optionOne = new Option("Option 1");
+        optionOne.setId("1");
+        Option optionTwo = new Option("Option 2");
+        optionTwo.setId("2");
+        
+        Election election = new Election();
+        election.setTitle("My Election");
+        election.setEnded(false);
+
+        List<Option> listOfOptions = new java.util.ArrayList<>();
+        listOfOptions.add(optionOne);
+        listOfOptions.add(optionTwo);
+        
+        when(electionRepository.findById("1")).thenReturn(Optional.of(election));
+        when(optionRepository.findByElectionId("1")).thenReturn(listOfOptions);
+        when(voteRepository.countByElectionIdAndOptionId("1", "1")).thenReturn(20);
+        when(voteRepository.countByElectionIdAndOptionId("1", "2")).thenReturn(10);
+
+        ElectionResultResponse response = resultService.getElectionResults("1");
+
+        assertEquals("My Election", response.getElectionTitle());
+        assertEquals("Election ongoing", response.getWinnerName());
+        assertEquals(20, response.getOptionVotes().get("Option 1"));
+        assertEquals(10, response.getOptionVotes().get("Option 2"));
+    }
+
+    @Test
+    @DisplayName("Should throw ElectionOngoingException when getting winner for ongoing election")
+    void shouldThrowElectionOngoingExceptionWhenGettingWinnerForOngoingElection() {
+        Election election = new Election();
+        election.setEnded(false);
+
+        when(electionRepository.findById("1")).thenReturn(Optional.of(election));
+
+        assertThrows(ElectionOngoingException.class, () -> resultService.getWinner("1"));
     }
 }

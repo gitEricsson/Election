@@ -35,7 +35,7 @@ class UserServiceTest {
         request.setEmail("john@example.com");
         
         User savedUser = new User("John Doe", "john@example.com");
-        savedUser.setId(1L);
+        savedUser.setId("1");
         
         when(userRepository.existsByEmail(request.getEmail())).thenReturn(false);
         when(userRepository.save(any(User.class))).thenReturn(savedUser);
@@ -43,7 +43,7 @@ class UserServiceTest {
         UserResponse createdUser = userService.createUser(request);
 
         assertNotNull(createdUser);
-        assertEquals(1L, createdUser.getId());
+        assertEquals("1", createdUser.getId());
         verify(userRepository).save(any(User.class));
     }
 
@@ -63,10 +63,10 @@ class UserServiceTest {
     @DisplayName("Should retrieve user by id")
     void shouldRetrieveUserById() {
         User user = new User("John Doe", "john@example.com");
-        user.setId(1L);
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        user.setId("1");
+        when(userRepository.findById("1")).thenReturn(Optional.of(user));
 
-        UserResponse retrievedUser = userService.getUserById(1L);
+        UserResponse retrievedUser = userService.getUserById("1");
 
         assertEquals("John Doe", retrievedUser.getName());
     }
@@ -74,9 +74,9 @@ class UserServiceTest {
     @Test
     @DisplayName("Should fail to retrieve non existent user")
     void shouldFailToRetrieveNonExistentUser() {
-        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+        when(userRepository.findById("99")).thenReturn(Optional.empty());
 
-        assertThrows(UserNotFoundException.class, () -> userService.getUserById(99L));
+        assertThrows(UserNotFoundException.class, () -> userService.getUserById("99"));
     }
 
     @Test
@@ -87,5 +87,26 @@ class UserServiceTest {
         invalidRequest.setEmail("invalid-email");
 
         assertThrows(InvalidEmailFormatException.class, () -> userService.createUser(invalidRequest));
+    }
+
+    @Test
+    @DisplayName("Should retrieve user by email")
+    void shouldRetrieveUserByEmail() {
+        User user = new User("John Doe", "john@example.com");
+        user.setId("1");
+        when(userRepository.findByEmail("john@example.com")).thenReturn(Optional.of(user));
+ 
+        UserResponse retrievedUser = userService.getUserByEmail("john@example.com");
+ 
+        assertEquals("John Doe", retrievedUser.getName());
+        assertEquals("john@example.com", retrievedUser.getEmail());
+    }
+ 
+    @Test
+    @DisplayName("Should fail to retrieve user by non-existent email")
+    void shouldFailToRetrieveUserByNonExistentEmail() {
+        when(userRepository.findByEmail("non@existent.com")).thenReturn(Optional.empty());
+ 
+        assertThrows(UserNotFoundException.class, () -> userService.getUserByEmail("non@existent.com"));
     }
 }
